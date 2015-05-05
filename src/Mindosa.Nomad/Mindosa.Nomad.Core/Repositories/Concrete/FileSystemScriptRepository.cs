@@ -16,14 +16,14 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
         {
             var directoryInfo = new DirectoryInfo(path);
             return directoryInfo.EnumerateFiles("*.sql", SearchOption.AllDirectories)
-                    .Select(fileInfo => MigrationFileFactory.Create(fileInfo))
+                    .Select(fileInfo => MigrationFileFactory.Create(fileInfo.FullName, fileInfo.Name, ScriptLocationType.FileSystem))
                     .OrderBy(migrationFile => migrationFile.MigrationVersion)
                     .ToList();
         }
 
         public string ReadFile(MigrationFile file)
         {
-            return File.ReadAllText(file.FullFileName);
+            return File.ReadAllText(file.ScriptLocation.FullFileName);
         }
     }
 }

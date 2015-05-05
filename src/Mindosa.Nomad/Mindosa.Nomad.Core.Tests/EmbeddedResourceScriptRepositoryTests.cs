@@ -54,6 +54,7 @@ namespace Mindosa.Nomad.Core.Tests
             Assert.AreEqual(MigrationFileType.Migration, files[0].MigrationFileType);
             Assert.AreEqual("Test Nested File", files[0].Description);
             Assert.AreEqual("2", files[0].MigrationVersion.GetVersion());
+            Assert.AreEqual(ScriptLocationType.EmbeddedResource, files[0].ScriptLocation.LocationType);
         }
 
         [Test]
@@ -72,10 +73,26 @@ namespace Mindosa.Nomad.Core.Tests
             Assert.AreEqual(MigrationFileType.Migration, files[0].MigrationFileType);
             Assert.AreEqual("Test File", files[0].Description);
             Assert.AreEqual("1", files[0].MigrationVersion.GetVersion());
+            Assert.AreEqual(ScriptLocationType.EmbeddedResource, files[0].ScriptLocation.LocationType);
 
             Assert.AreEqual(MigrationFileType.Migration, files[1].MigrationFileType);
             Assert.AreEqual("Test Nested File", files[1].Description);
             Assert.AreEqual("2", files[1].MigrationVersion.GetVersion());
+            Assert.AreEqual(ScriptLocationType.EmbeddedResource, files[1].ScriptLocation.LocationType);
+        }
+
+        [Test]
+        public void Created_Directory_Reads_Single_Result()
+        {
+            // Arrange
+            var repository = new EmbeddedResourceScriptRepository();
+
+            // Act
+            var files = repository.GetFilesInPath("Mindosa.Nomad.Core.Tests.TestScripts.SubFolder");
+            var retrievedContent = repository.ReadFile(files[0]);
+
+            // Assert
+            Assert.AreEqual("SELECT 2", retrievedContent);
         }
     }
 }

@@ -11,12 +11,8 @@ namespace Mindosa.Nomad.Core.Infrasctructure
 {
     public class MigrationFileFactory
     {
-        public static MigrationFile Create(FileInfo fileInfo)
-        {
-            return Create(fileInfo.FullName, fileInfo.Name);
-        }
 
-        public static MigrationFile Create(string fullFileName, string fileNameWithExtension)
+        public static MigrationFile Create(string fullFileName, string fileNameWithExtension, ScriptLocationType scriptLocationType)
         {
             var migrationFileType = MigrationFileType.Migration;
 
@@ -45,8 +41,12 @@ namespace Mindosa.Nomad.Core.Infrasctructure
             var migrationFile = new MigrationFile()
             {
                 Description = description,
-                FullFileName = fullFileName,
-                MigrationFileType = migrationFileType
+                
+                MigrationFileType = migrationFileType,
+                ScriptLocation = new ScriptLocation(){
+                    LocationType = scriptLocationType,
+                    FullFileName = fullFileName
+                }
             };
 
 

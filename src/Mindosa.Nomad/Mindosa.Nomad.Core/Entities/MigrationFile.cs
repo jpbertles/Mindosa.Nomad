@@ -12,9 +12,10 @@ namespace Mindosa.Nomad.Core.Entities
         public MigrationVersion MigrationVersion { get; set; }
         public MigrationVersion BeginningMigrationVersion { get; set; }
         public MigrationVersion EndingMigrationVersion { get; set; }
-
+        
         public string Description { get; set; }
-        public string FullFileName { get; set; }
+
+        public ScriptLocation ScriptLocation { get; set; }
 
         public override string ToString()
         {

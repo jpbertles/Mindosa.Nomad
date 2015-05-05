@@ -70,6 +70,7 @@ namespace Mindosa.Nomad.Core.Tests
             Assert.AreEqual(MigrationFileType.Migration, files[0].MigrationFileType);
             Assert.AreEqual("Test File", files[0].Description);
             Assert.AreEqual("1", files[0].MigrationVersion.GetVersion());
+            Assert.AreEqual(ScriptLocationType.FileSystem, files[0].ScriptLocation.LocationType);
         }
 
         [Test]
@@ -105,10 +106,36 @@ namespace Mindosa.Nomad.Core.Tests
             Assert.AreEqual(MigrationFileType.Migration, files[0].MigrationFileType);
             Assert.AreEqual("Test File", files[0].Description);
             Assert.AreEqual("1", files[0].MigrationVersion.GetVersion());
+            Assert.AreEqual(ScriptLocationType.FileSystem, files[0].ScriptLocation.LocationType);
 
             Assert.AreEqual(MigrationFileType.Migration, files[1].MigrationFileType);
             Assert.AreEqual("Test Nested File", files[1].Description);
             Assert.AreEqual("2", files[1].MigrationVersion.GetVersion());
+            Assert.AreEqual(ScriptLocationType.FileSystem, files[1].ScriptLocation.LocationType);
+        }
+
+        [Test]
+        public void Created_Directory_Reads_Single_Result()
+        {
+            // Arrange
+            var content = Guid.NewGuid().ToString();
+            var path = @"c:\temp\" + Guid.NewGuid();
+            var repository = new FileSystemScriptRepository();
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            File.WriteAllText(Path.Combine(path, "1__Test_File.migration.sql"), content);
+
+            // Act
+            var files = repository.GetFilesInPath(path);
+            var retrievedContent = repository.ReadFile(files[0]);
+
+            // Clean up
+            Directory.Delete(path, true);
+
+            // Assert
+            Assert.AreEqual(content, retrievedContent);
         }
     }
 }

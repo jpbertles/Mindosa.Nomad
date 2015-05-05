@@ -29,7 +29,7 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
                     fileName = string.Join(".", fileNameParts.SkipWhile(x => !char.IsNumber(x[0])));
                 }
 
-                migrationFiles.Add(MigrationFileFactory.Create(manifestResourceName, fileName));
+                migrationFiles.Add(MigrationFileFactory.Create(manifestResourceName, fileName, ScriptLocationType.EmbeddedResource));
             }
 
             return migrationFiles.OrderBy(migrationFile => migrationFile.MigrationVersion).ToList();
@@ -37,8 +37,8 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
 
         public string ReadFile(MigrationFile file)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var sr = new StreamReader(assembly.GetManifestResourceStream(file.FullFileName)))
+            var assembly = Assembly.GetCallingAssembly();
+            using (var sr = new StreamReader(assembly.GetManifestResourceStream(file.ScriptLocation.FullFileName)))
             {
                 return sr.ReadToEnd();
             }
