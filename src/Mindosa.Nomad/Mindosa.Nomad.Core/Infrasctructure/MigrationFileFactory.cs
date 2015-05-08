@@ -6,12 +6,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Mindosa.Nomad.Core.Entities;
+using Mindosa.Nomad.Core.Repositories.Abstract;
+using Mindosa.Nomad.Core.Repositories.Concrete;
 
 namespace Mindosa.Nomad.Core.Infrasctructure
 {
     public class MigrationFileFactory
     {
-
         public static MigrationFile Create(string fullFileName, string fileNameWithExtension, ScriptLocationType scriptLocationType)
         {
             var migrationFileType = MigrationFileType.Migration;
@@ -81,6 +82,25 @@ namespace Mindosa.Nomad.Core.Infrasctructure
             }
 
             return migrationFile;
+        }
+
+        public static string GetContents(MigrationFile migrationFile)
+        {
+            IScriptRepository scriptRepository;
+
+            switch (migrationFile.ScriptLocation.LocationType)
+            {
+                case ScriptLocationType.EmbeddedResource:
+                    scriptRepository = new EmbeddedResourceScriptRepository();
+                    break;
+                case ScriptLocationType.FileSystem:
+                    scriptRepository = new FileSystemScriptRepository();
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            return scriptRepository.ReadFile(migrationFile);
         }
     }
 }

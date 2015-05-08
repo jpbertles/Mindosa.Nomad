@@ -12,17 +12,17 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
     /// </summary>
     public class OdbcMigrationRepository: IMigrationRepository
     {
-        public List<Entities.MigrationMetaData> GetInfo()
+        public List<Entities.MigrationMetaData> GetInfo(string connectionString)
         {
             throw new NotImplementedException();
         }
 
-        public void ApplyMigration(Entities.MigrationFile migrationFile)
+        public void ApplyMigration(Entities.MigrationFile migrationFile, string connectionString)
         {
             throw new NotImplementedException();
         }
 
-        public void SetBaseline()
+        public void SetBaseline(string connectionString)
         {
             throw new NotImplementedException();
         }

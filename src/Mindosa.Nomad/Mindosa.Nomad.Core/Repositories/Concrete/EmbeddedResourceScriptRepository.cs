@@ -17,19 +17,28 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
         {
             var migrationFiles = new List<MigrationFile>();
 
-            var assembly = Assembly.GetCallingAssembly();
-            foreach (var manifestResourceName in assembly.GetManifestResourceNames().Where(x => x.StartsWith(path, StringComparison.CurrentCultureIgnoreCase)))
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()
+                .Where(
+                    assembly =>
+                        assembly.GetManifestResourceNames()
+                            .Any(x => x.StartsWith(path, StringComparison.CurrentCultureIgnoreCase))))
             {
-                var resourceInfo = assembly.GetManifestResourceInfo(manifestResourceName);
-                var fileName = manifestResourceName.Replace(path + ".", string.Empty);
-                
-                var fileNameParts = fileName.Split('.');
-                if (fileNameParts.Length > 3)
+                foreach (
+                    var manifestResourceName in
+                        assembly.GetManifestResourceNames()
+                            .Where(x => x.StartsWith(path, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    fileName = string.Join(".", fileNameParts.SkipWhile(x => !char.IsNumber(x[0])));
-                }
+                    var fileName = manifestResourceName.Replace(path + ".", string.Empty);
 
-                migrationFiles.Add(MigrationFileFactory.Create(manifestResourceName, fileName, ScriptLocationType.EmbeddedResource));
+                    var fileNameParts = fileName.Split('.');
+                    if (fileNameParts.Length > 3)
+                    {
+                        fileName = string.Join(".", fileNameParts.SkipWhile(x => !char.IsNumber(x[0])));
+                    }
+
+                    migrationFiles.Add(MigrationFileFactory.Create(manifestResourceName, fileName,
+                        ScriptLocationType.EmbeddedResource));
+                }
             }
 
             return migrationFiles.OrderBy(migrationFile => migrationFile.MigrationVersion).ToList();
@@ -37,11 +46,19 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
 
         public string ReadFile(MigrationFile file)
         {
-            var assembly = Assembly.GetCallingAssembly();
-            using (var sr = new StreamReader(assembly.GetManifestResourceStream(file.ScriptLocation.FullFileName)))
-            {
-                return sr.ReadToEnd();
-            }
+            var tmpStuff = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().ToArray();
+
+            var fileAssembly =
+                AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(
+                        assembly =>
+                            assembly.GetManifestResourceNames()
+                                .Any(resource => resource.Equals(file.ScriptLocation.FullFileName, StringComparison.CurrentCultureIgnoreCase)));
+            
+                using (var sr = new StreamReader(fileAssembly.GetManifestResourceStream(file.ScriptLocation.FullFileName)))
+                {
+                    return sr.ReadToEnd();
+                }
         }
     }
 }

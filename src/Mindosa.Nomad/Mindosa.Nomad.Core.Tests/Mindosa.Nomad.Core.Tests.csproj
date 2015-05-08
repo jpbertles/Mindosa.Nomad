@@ -56,6 +56,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
   </ItemGroup>
   <Choose>
@@ -73,10 +74,13 @@
   <ItemGroup>
     <Compile Include="EmbeddedResourceScriptRepositoryTests.cs" />
     <Compile Include="FileSystemScriptRepositoryTests.cs" />
+    <Compile Include="Infrastructure\UnitTestStartAndEnd.cs" />
     <Compile Include="MigrationVersionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlServerMigrationRepositoryTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
