@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mindosa.Nomad.Core", "Mindo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mindosa.Nomad.Core.Tests", "Mindosa.Nomad.Core.Tests\Mindosa.Nomad.Core.Tests.csproj", "{16C73B5A-8F8D-412A-8702-C878148E9EE5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mindosa.Nomad.Console", "Mindosa.Nomad.Console\Mindosa.Nomad.Console.csproj", "{C209E703-7D0C-42E7-8163-605ADD1B3E6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,12 @@ Global
 		{16C73B5A-8F8D-412A-8702-C878148E9EE5}.Development|Any CPU.Build.0 = Debug|Any CPU
 		{16C73B5A-8F8D-412A-8702-C878148E9EE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16C73B5A-8F8D-412A-8702-C878148E9EE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C209E703-7D0C-42E7-8163-605ADD1B3E6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C209E703-7D0C-42E7-8163-605ADD1B3E6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C209E703-7D0C-42E7-8163-605ADD1B3E6F}.Development|Any CPU.ActiveCfg = Debug|Any CPU
+		{C209E703-7D0C-42E7-8163-605ADD1B3E6F}.Development|Any CPU.Build.0 = Debug|Any CPU
+		{C209E703-7D0C-42E7-8163-605ADD1B3E6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C209E703-7D0C-42E7-8163-605ADD1B3E6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
