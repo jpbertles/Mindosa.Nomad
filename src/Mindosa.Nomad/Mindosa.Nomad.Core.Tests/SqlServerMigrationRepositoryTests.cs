@@ -27,11 +27,10 @@ namespace Mindosa.Nomad.Core.Tests
         public void V01_Test_Get_Info_Where_Not_Exists()
         {
             // arrange
-            var repository = new SqlServerMigrationRepository();
+            var repository = new SqlServerMigrationRepository(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
 
             // act
-            var history =
-                repository.GetInfo(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
+            var history = repository.GetInfo();
 
             // assert
             Assert.IsNotNull(history);
@@ -42,12 +41,11 @@ namespace Mindosa.Nomad.Core.Tests
         public void V02_Test_Set_Baseline_And_Getting_Info()
         {
             // arrange
-            var repository = new SqlServerMigrationRepository();
-            repository.SetBaseline(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
+            var repository = new SqlServerMigrationRepository(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
+            repository.SetBaseline();
             
             // act
-            var history =
-                repository.GetInfo(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
+            var history = repository.GetInfo();
 
             // assert
             Assert.IsNotNull(history);
@@ -60,14 +58,14 @@ namespace Mindosa.Nomad.Core.Tests
         public void V03_Test_Apply_Migration_And_Getting_Info()
         {
             // arrange
-            var repository = new SqlServerMigrationRepository();
+            var repository = new SqlServerMigrationRepository(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
             var scriptRepository = new EmbeddedResourceScriptRepository();
 
             // act
             var files = scriptRepository.GetFilesInPath("Mindosa.Nomad.Core.Tests.TestScripts.SubFolder");
-            repository.ApplyMigration(files[0], ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
+            repository.ApplyMigration(files[0]);
 
-            var history = repository.GetInfo(ConfigurationManager.ConnectionStrings["SqlServerNoBaseline"].ConnectionString);
+            var history = repository.GetInfo();
 
             // assert
             Assert.IsNotNull(history);

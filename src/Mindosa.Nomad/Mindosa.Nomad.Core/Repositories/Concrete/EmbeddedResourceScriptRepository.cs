@@ -46,6 +46,11 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
 
         public string ReadFile(MigrationFile file)
         {
+            return ReadFile(file.ScriptLocation.FullFileName);
+        }
+
+        internal string ReadFile(string resourceName)
+        {
             var tmpStuff = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().ToArray();
 
             var fileAssembly =
@@ -53,12 +58,12 @@ namespace Mindosa.Nomad.Core.Repositories.Concrete
                     .FirstOrDefault(
                         assembly =>
                             assembly.GetManifestResourceNames()
-                                .Any(resource => resource.Equals(file.ScriptLocation.FullFileName, StringComparison.CurrentCultureIgnoreCase)));
-            
-                using (var sr = new StreamReader(fileAssembly.GetManifestResourceStream(file.ScriptLocation.FullFileName)))
-                {
-                    return sr.ReadToEnd();
-                }
+                                .Any(resource => resource.Equals(resourceName, StringComparison.CurrentCultureIgnoreCase)));
+
+            using (var sr = new StreamReader(fileAssembly.GetManifestResourceStream(resourceName)))
+            {
+                return sr.ReadToEnd();
+            }
         }
     }
 }
