@@ -9,8 +9,8 @@ namespace Mindosa.Nomad.Core.Repositories.Abstract
 {
     public interface IMigrationRepository
     {
-        List<MigrationMetaData> GetInfo(string connectionString);
-        void ApplyMigration(MigrationFile migrationFile, string connectionString);
-        void SetBaseline(string connectionString);
+        List<Entities.MigrationMetaData> GetInfo();
+        void SetBaseline();
+        void ApplyMigration(Entities.MigrationFile migrationFile);
     }
 }
