@@ -12,7 +12,21 @@ namespace Mindosa.Nomad.Core
 {
     public class MigrationManager
     {
-        public static void Execute(MigrationCommand command, MigrationOptions options)
+        public delegate void MigrationFilesLoadedEventHandler(List<MigrationFile> loadedMigrationFiles);
+
+        public event MigrationFilesLoadedEventHandler MigrationFilesLoaded;
+
+        public delegate void PreMigrationEventHandler(MigrationFile migrationFile);
+
+        public event PreMigrationEventHandler PreMigrationBeginning;
+        public event PreMigrationEventHandler PreMigrationEnded;
+
+        public delegate void PostMigrationEventHandler(MigrationFile migrationFile);
+
+        public event PostMigrationEventHandler PostMigrationBeginning;
+        public event PostMigrationEventHandler PostMigrationEnding;
+
+        public void Execute(MigrationCommand command, MigrationOptions options)
         {
             IMigrationRepository migrationRepository;
 
@@ -61,6 +75,7 @@ namespace Mindosa.Nomad.Core
                 migrationFiles.AddRange(scriptRepository.GetFilesInPath(scriptLocation.FullFileName));
             }
 
+            MigrationFilesLoaded(migrationFiles);
             
             var existingFiles = migrationRepository.GetInfo();
             var pendingFiles = new List<MigrationFile>();
@@ -92,9 +107,33 @@ namespace Mindosa.Nomad.Core
                     migrationRepository.SetBaseline();
                     break;
                 case MigrationCommand.Migrate:
-                    foreach (var migrationFile in pendingFiles)
+                    foreach (var migrationFile in pendingFiles.Where(x => x.MigrationFileType == MigrationFileType.Migration))
                     {
+                        PreMigrationBeginning(migrationFile);
+                        var preMigrationFiles =
+                            migrationFiles.Where(x => x.MigrationFileType == MigrationFileType.PreMigrate
+                                                      && x.BeginningMigrationVersion.CompareTo(migrationFile.MigrationVersion) >= 0
+                                                      && x.EndingMigrationVersion.CompareTo(migrationFile.MigrationVersion) <= 0)
+                                .OrderBy(x => x.MigrationVersion);
+                        foreach (var preMigrationFile in preMigrationFiles)
+                        {
+                            migrationRepository.ApplyMigration(preMigrationFile);
+                        }
+                        PreMigrationEnded(migrationFile);
+
                         migrationRepository.ApplyMigration(migrationFile);
+
+                        PostMigrationBeginning(migrationFile);
+                        var postMigrationFiles =
+                            migrationFiles.Where(x => x.MigrationFileType == MigrationFileType.PostMigrate
+                                                      && x.BeginningMigrationVersion.CompareTo(migrationFile.MigrationVersion) >= 0
+                                                      && x.EndingMigrationVersion.CompareTo(migrationFile.MigrationVersion) <= 0)
+                                .OrderBy(x => x.MigrationVersion);
+                        foreach (var postMigrationFile in postMigrationFiles)
+                        {
+                            migrationRepository.ApplyMigration(postMigrationFile);
+                        }
+                        PostMigrationEnding(migrationFile);
                     }
                     break;
             }
@@ -102,17 +141,17 @@ namespace Mindosa.Nomad.Core
             existingFiles = migrationRepository.GetInfo();
 
             Console.WriteLine("-------------------------------------------------------------------------------");
-            Console.WriteLine("|{0,10} | {1,30} | {2,10} | {3,17} |", "Version", "Description", "Status", "Time");
+            Console.WriteLine("|{0,-10} | {1,-30} | {2,-10} | {3,-17} |", "Version", "Description", "Status", "Time");
             Console.WriteLine("-------------------------------------------------------------------------------");
             foreach (var existingFile in existingFiles.OrderBy(x => MigrationVersion.FromVersion(x.MigrationVersion)))
             {
-                Console.WriteLine("|{0,10} | {1,30} | {2,10} | {3,17} |", existingFile.MigrationVersion, existingFile.Description, existingFile.Status, existingFile.TimeStamp.ToLocalTime().ToString("MM-dd-yy hh:mm tt"));
+                Console.WriteLine("|{0,-10} | {1,-30} | {2,-10} | {3,-17} |", existingFile.MigrationVersion, existingFile.Description, existingFile.Status, existingFile.TimeStamp.ToLocalTime().ToString("MM-dd-yy hh:mm tt"));
                 Console.WriteLine("-------------------------------------------------------------------------------");
             }
 
-            foreach (var pendingFile in pendingFiles.OrderBy(x => x.MigrationVersion))
+            foreach (var pendingFile in pendingFiles.Where(x => !existingFiles.Any(y => MigrationVersion.FromVersion(y.MigrationVersion).Equals(x.MigrationVersion))).OrderBy(x => x.MigrationVersion))
             {
-                Console.WriteLine("|{0,10} | {1,30} | {2,10} | {3,17} |", pendingFile.MigrationVersion, pendingFile.Description, MigrationStatus.Pending, DateTime.Now.ToString("MM-dd-yy hh:mm tt"));
+                Console.WriteLine("|{0,-10} | {1,-30} | {2,-10} | {3,-17} |", pendingFile.MigrationVersion, pendingFile.Description, MigrationStatus.Pending, DateTime.Now.ToString("MM-dd-yy hh:mm tt"));
                 Console.WriteLine("-------------------------------------------------------------------------------");
             }
         }

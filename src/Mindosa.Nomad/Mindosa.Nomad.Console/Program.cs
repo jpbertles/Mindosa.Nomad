@@ -12,12 +12,22 @@ namespace Mindosa.Nomad.Console
     {
         static void Main(string[] args)
         {
-            System.Console.WriteLine("Nomad by Mindosa");
+            System.Console.WriteLine("Nomad a Mindosa Project");
             System.Console.WriteLine();
             System.Console.WriteLine();
             System.Console.WriteLine();
 
-            MigrationManager.Execute(MigrationCommand.Baseline, new MigrationOptions()
+            var migrationManager = new MigrationManager();
+
+            migrationManager.MigrationFilesLoaded += migrationManager_MigrationFilesLoaded;
+            
+            migrationManager.PreMigrationBeginning += migrationManager_PreMigrationBeginning;
+            migrationManager.PreMigrationEnded += migrationManager_PreMigrationEnded;
+            
+            migrationManager.PostMigrationBeginning += migrationManager_PostMigrationBeginning;
+            migrationManager.PostMigrationEnding += migrationManager_PostMigrationEnding;
+
+            var migrationOptions = new MigrationOptions()
             {
                 ConnectionString = @"server=.\sql2014;database=Nomad;Integrated Security = true;",
                 ProviderName = "SqlServer",
@@ -29,10 +39,44 @@ namespace Mindosa.Nomad.Console
                         LocationType = ScriptLocationType.FileSystem
                     }
                 }
-            });
+            };
+
+            System.Console.WriteLine("Executing baseline");
+            migrationManager.Execute(MigrationCommand.Baseline, migrationOptions);
 
             System.Console.WriteLine();
             System.Console.WriteLine();
+            System.Console.WriteLine();
+            System.Console.WriteLine("Executing migrate");
+            migrationManager.Execute(MigrationCommand.Migrate, migrationOptions);
+
+            System.Console.WriteLine();
+            System.Console.WriteLine();
+        }
+
+        static void migrationManager_PostMigrationEnding(MigrationFile migrationFile)
+        {
+            System.Console.WriteLine("ending post " + migrationFile.ToString());
+        }
+
+        static void migrationManager_PostMigrationBeginning(MigrationFile migrationFile)
+        {
+            System.Console.WriteLine("beginning post " + migrationFile.ToString());
+        }
+
+        static void migrationManager_PreMigrationEnded(MigrationFile migrationFile)
+        {
+            System.Console.WriteLine("ending pre " + migrationFile.ToString());
+        }
+
+        static void migrationManager_PreMigrationBeginning(MigrationFile migrationFile)
+        {
+            System.Console.WriteLine("beginning pre " + migrationFile.ToString());
+        }
+
+        static void migrationManager_MigrationFilesLoaded(List<MigrationFile> loadedMigrationFiles)
+        {
+            System.Console.WriteLine(loadedMigrationFiles.Count + " migration files loaded");
         }
     }
 }
