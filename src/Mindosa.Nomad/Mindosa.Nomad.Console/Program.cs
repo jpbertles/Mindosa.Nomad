@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,29 +55,31 @@ namespace Mindosa.Nomad.Console
             System.Console.WriteLine();
         }
 
-        static void migrationManager_PostMigrationEnding(MigrationFile migrationFile)
+        static void migrationManager_PostMigrationEnding(MigrationFile migrationFile, CancelEventArgs cancelEventArgs)
         {
             System.Console.WriteLine("ending post " + migrationFile.ToString());
         }
 
-        static void migrationManager_PostMigrationBeginning(MigrationFile migrationFile)
+        static void migrationManager_PostMigrationBeginning(MigrationFile migrationFile, CancelEventArgs cancelEventArgs)
         {
             System.Console.WriteLine("beginning post " + migrationFile.ToString());
         }
 
-        static void migrationManager_PreMigrationEnded(MigrationFile migrationFile)
+        static void migrationManager_PreMigrationEnded(MigrationFile migrationFile, CancelEventArgs cancelEventArgs)
         {
             System.Console.WriteLine("ending pre " + migrationFile.ToString());
         }
 
-        static void migrationManager_PreMigrationBeginning(MigrationFile migrationFile)
+        static void migrationManager_PreMigrationBeginning(MigrationFile migrationFile, CancelEventArgs cancelEventArgs)
         {
             System.Console.WriteLine("beginning pre " + migrationFile.ToString());
         }
 
-        static void migrationManager_MigrationFilesLoaded(List<MigrationFile> loadedMigrationFiles)
+        static void migrationManager_MigrationFilesLoaded(List<MigrationFile> loadedMigrationFiles, CancelEventArgs cancelEventArgs)
         {
             System.Console.WriteLine(loadedMigrationFiles.Count + " migration files loaded");
+
+            cancelEventArgs.Cancel = true;
         }
     }
 }

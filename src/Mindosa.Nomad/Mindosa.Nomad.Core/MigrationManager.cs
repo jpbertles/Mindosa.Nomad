@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,22 +13,23 @@ namespace Mindosa.Nomad.Core
 {
     public class MigrationManager
     {
-        public delegate void MigrationFilesLoadedEventHandler(List<MigrationFile> loadedMigrationFiles);
+        public delegate void MigrationFilesLoadedEventHandler(List<MigrationFile> loadedMigrationFiles, CancelEventArgs cancelEventArgs);
 
         public event MigrationFilesLoadedEventHandler MigrationFilesLoaded;
 
-        public delegate void PreMigrationEventHandler(MigrationFile migrationFile);
+        public delegate void PreMigrationEventHandler(MigrationFile migrationFile, CancelEventArgs cancelEventArgs);
 
         public event PreMigrationEventHandler PreMigrationBeginning;
         public event PreMigrationEventHandler PreMigrationEnded;
 
-        public delegate void PostMigrationEventHandler(MigrationFile migrationFile);
+        public delegate void PostMigrationEventHandler(MigrationFile migrationFile, CancelEventArgs cancelEventArgs);
 
         public event PostMigrationEventHandler PostMigrationBeginning;
         public event PostMigrationEventHandler PostMigrationEnding;
 
         public void Execute(MigrationCommand command, MigrationOptions options)
         {
+            CancelEventArgs cancelEventArgs;
             IMigrationRepository migrationRepository;
 
             switch (options.ProviderName)
@@ -75,8 +77,19 @@ namespace Mindosa.Nomad.Core
                 migrationFiles.AddRange(scriptRepository.GetFilesInPath(scriptLocation.FullFileName));
             }
 
-            MigrationFilesLoaded(migrationFiles);
             
+            foreach (MigrationFilesLoadedEventHandler subscriber in MigrationFilesLoaded.GetInvocationList())
+            {
+                cancelEventArgs = new CancelEventArgs();
+                subscriber(migrationFiles, cancelEventArgs);
+
+                if (cancelEventArgs.Cancel)
+                {
+                    Console.WriteLine("Canceled after loading migration files. Aborting operation.");
+                    return;
+                }
+            }
+
             var existingFiles = migrationRepository.GetInfo();
             var pendingFiles = new List<MigrationFile>();
 
@@ -109,7 +122,19 @@ namespace Mindosa.Nomad.Core
                 case MigrationCommand.Migrate:
                     foreach (var migrationFile in pendingFiles.Where(x => x.MigrationFileType == MigrationFileType.Migration))
                     {
-                        PreMigrationBeginning(migrationFile);
+                        foreach (PreMigrationEventHandler subscriber in PreMigrationBeginning.GetInvocationList())
+                        {
+                            cancelEventArgs = new CancelEventArgs();
+                            subscriber(migrationFile, cancelEventArgs);
+
+                            if (cancelEventArgs.Cancel)
+                            {
+                                Console.WriteLine("Canceled in pre-migration beginning event. Aborting operation.");
+                                return;
+                            }
+                        }
+
+
                         var preMigrationFiles =
                             migrationFiles.Where(x => x.MigrationFileType == MigrationFileType.PreMigrate
                                                       && x.BeginningMigrationVersion.CompareTo(migrationFile.MigrationVersion) >= 0
@@ -119,11 +144,34 @@ namespace Mindosa.Nomad.Core
                         {
                             migrationRepository.ApplyMigration(preMigrationFile);
                         }
-                        PreMigrationEnded(migrationFile);
+
+                        foreach (PreMigrationEventHandler subscriber in PreMigrationEnded.GetInvocationList())
+                        {
+                            cancelEventArgs = new CancelEventArgs();
+                            subscriber(migrationFile, cancelEventArgs);
+
+                            if (cancelEventArgs.Cancel)
+                            {
+                                Console.WriteLine("Canceled in pre-migration ending event. Aborting operation.");
+                                return;
+                            }
+                        }
+
 
                         migrationRepository.ApplyMigration(migrationFile);
 
-                        PostMigrationBeginning(migrationFile);
+                        foreach (PostMigrationEventHandler subscriber in PostMigrationBeginning.GetInvocationList())
+                        {
+                            cancelEventArgs = new CancelEventArgs();
+                            subscriber(migrationFile, cancelEventArgs);
+
+                            if (cancelEventArgs.Cancel)
+                            {
+                                Console.WriteLine("Canceled in post-migration beginning event. Aborting operation.");
+                                return;
+                            }
+                        }
+
                         var postMigrationFiles =
                             migrationFiles.Where(x => x.MigrationFileType == MigrationFileType.PostMigrate
                                                       && x.BeginningMigrationVersion.CompareTo(migrationFile.MigrationVersion) >= 0
@@ -133,7 +181,18 @@ namespace Mindosa.Nomad.Core
                         {
                             migrationRepository.ApplyMigration(postMigrationFile);
                         }
-                        PostMigrationEnding(migrationFile);
+
+                        foreach (PostMigrationEventHandler subscriber in PostMigrationEnding.GetInvocationList())
+                        {
+                            cancelEventArgs = new CancelEventArgs();
+                            subscriber(migrationFile, cancelEventArgs);
+
+                            if (cancelEventArgs.Cancel)
+                            {
+                                Console.WriteLine("Canceled in post-migration ending event. Aborting operation.");
+                                return;
+                            }
+                        }
                     }
                     break;
             }
